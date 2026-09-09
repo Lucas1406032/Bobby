@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El increíble viaje de Bobbie — Funciones de primer grado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+<style>
+  :root{
+    --paper:#F1E7D2;
+    --paper-alt:#E9DCC0;
+    --card-bg:#FBF6EA;
+    --ink:#2A2314;
+    --ink-soft:#5C523B;
+    --pine:#2F5233;
+    --pine-light:#DCE6D6;
+    --rust:#B84B2A;
+    --rust-light:#F3DCCF;
+    --sky:#3E7A7B;
+    --sky-light:#D9E9E6;
+    --amber:#C8862A;
+    --amber-light:#F3E3C4;
+    --line: rgba(42,35,20,0.16);
+    --shadow: 0 10px 28px rgba(42,35,20,0.10);
+    --radius: 20px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Figtree', sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    margin:0 0 .4em 0;
+    color:var(--ink);
+  }
+  p{margin:0 0 1em 0;}
+  .wrap{max-width:880px; margin:0 auto; padding:0 24px;}
+
+  /* ---------- Trail progress bar ---------- */
+  #trailbar{
+    position:sticky; top:0; z-index:60;
+    background:rgba(241,231,210,0.94);
+    backdrop-filter: blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  #trailbar .fill-track{
+    height:4px; background:rgba(47,82,51,0.12); position:relative; overflow:hidden;
+  }
+  #trailbar .fill{
+    height:100%; width:0%; background:linear-gradient(90deg,var(--pine),var(--amber));
+    transition:width .1s linear;
+  }
+  .waypoints{
+    display:flex; gap:4px; overflow-x:auto; padding:8px 16px;
+    scrollbar-width:none;
+  }
+  .waypoints::-webkit-scrollbar{display:none;}
+  .waypoint-btn{
+    flex:0 0 auto;
+    display:flex; align-items:center; gap:6px;
+    padding:6px 12px; border-radius:999px; border:1px solid var(--line);
+    background:transparent; color:var(--ink-soft);
+    font-family:'Figtree'; font-size:.78rem; font-weight:600;
+    cursor:pointer; white-space:nowrap; transition:all .2s ease;
+  }
+  .waypoint-btn .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-soft); opacity:.5;}
+  .waypoint-btn.active{ background:var(--pine); color:#fff; border-color:var(--pine);}
+  .waypoint-btn.active .dot{background:#fff; opacity:1;}
+
+  /* ---------- Hero ---------- */
+  header.hero{
+    padding:56px 0 40px 0;
+    position:relative;
+    overflow:hidden;
+  }
+  .paw-trail{
+    position:absolute; top:18px; right:-10px; opacity:.14; pointer-events:none;
+    width:220px; transform:rotate(-8deg);
+  }
+  .eyebrow-tag{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--pine); color:#fff; font-weight:600; font-size:.82rem;
+    padding:6px 14px; border-radius:999px; margin-bottom:18px;
+  }
+  header.hero h1{
+    font-size:clamp(2.1rem, 5vw, 3.1rem);
+    line-height:1.08;
+    max-width:11ch;
+  }
+  header.hero .lede{
+    max-width:62ch; font-size:1.08rem; color:var(--ink-soft);
+  }
+  .stat-row{
+    display:flex; flex-wrap:wrap; gap:14px; margin-top:28px;
+  }
+  .stat-chip{
+    background:var(--card-bg); border:1px solid var(--line); border-radius:16px;
+    padding:14px 18px; min-width:130px; box-shadow:var(--shadow);
+  }
+  .stat-chip .num{font-family:'Fredoka'; font-size:1.5rem; color:var(--pine); font-weight:600;}
+  .stat-chip .lbl{font-size:.82rem; color:var(--ink-soft);}
+
+  /* ---------- Generic section ---------- */
+  section{padding:36px 0;}
+  section.alt{background:var(--paper-alt); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+
+  .intro-card{
+    background:var(--card-bg); border:1px solid var(--line); border-radius:var(--radius);
+    padding:28px 30px; box-shadow:var(--shadow);
+  }
+  .intro-card ul{margin:10px 0 0 0; padding-left:22px;}
+  .intro-card li{margin-bottom:6px;}
+  .root-box{
+    margin-top:20px; background:var(--sky-light); border-left:4px solid var(--sky);
+    border-radius:10px; padding:16px 18px; font-size:1.02rem;
+  }
+
+  /* ---------- Situation cards ---------- */
+  .situation{
+    scroll-margin-top:90px;
+    margin:44px 0;
+    border-radius:var(--radius);
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .situation-head{
+    padding:26px 30px 20px 30px;
+    border-bottom:1px dashed var(--line);
+  }
+  .situation-head .eyebrow{
+    display:inline-block; font-family:'Fredoka'; font-weight:600; font-size:.85rem;
+    padding:4px 12px; border-radius:999px; margin-bottom:10px;
+  }
+  .situation-head h2{font-size:1.5rem;}
+  .situation-head .context{color:var(--ink-soft); margin-bottom:0;}
+
+  .situation.s1 .situation-head .eyebrow{background:var(--pine-light); color:var(--pine);}
+  .situation.s2 .situation-head .eyebrow{background:var(--rust-light); color:var(--rust);}
+  .situation.s3 .situation-head .eyebrow{background:var(--sky-light); color:var(--sky);}
+  .situation.s4 .situation-head .eyebrow{background:var(--amber-light); color:var(--amber);}
+
+  .situation.s1{border-top:4px solid var(--pine);}
+  .situation.s2{border-top:4px solid var(--rust);}
+  .situation.s3{border-top:4px solid var(--sky);}
+  .situation.s4{border-top:4px solid var(--amber);}
+
+  .situation-body{padding:24px 30px 32px 30px;}
+
+  .table-scroll{overflow-x:auto; margin:18px 0;}
+  table.data-table{
+    border-collapse:collapse; width:100%; min-width:420px;
+    font-size:.96rem;
+  }
+  table.data-table th, table.data-table td{
+    border:1px solid var(--line); padding:10px 12px; text-align:center;
+  }
+  table.data-table th{background:var(--paper-alt); font-family:'Fredoka'; font-weight:500;}
+  table.data-table input{
+    width:88px; max-width:100%; border:none; border-bottom:2px solid var(--line);
+    background:transparent; text-align:center; font-family:'Figtree'; font-size:.96rem;
+    padding:4px 2px; color:var(--ink);
+  }
+  table.data-table input:focus{outline:none; border-bottom-color:var(--pine);}
+
+  .question-block{
+    margin-top:24px; padding-top:20px; border-top:1px solid var(--line);
+  }
+  .question-block:first-of-type{border-top:none; margin-top:20px; padding-top:0;}
+  .question-num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; border-radius:50%; background:var(--ink);
+    color:var(--paper); font-family:'Fredoka'; font-size:.85rem; margin-right:8px;
+    flex:0 0 auto;
+  }
+  .question-top{display:flex; align-items:flex-start; gap:2px; margin-bottom:10px;}
+  .question-text{font-size:1.04rem; padding-top:2px;}
+
+  .answer-box{
+    width:100%; min-height:84px; resize:vertical;
+    border:1px solid var(--line); border-radius:12px;
+    padding:6px 14px 0 14px; font-family:'Figtree'; font-size:.98rem; color:var(--ink);
+    background-color: var(--card-bg);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 27px,
+      var(--line) 27px,
+      var(--line) 28px
+    );
+    background-position: 0 6px;
+    line-height:28px;
+    font-variant-numeric: lining-nums;
+  }
+  .answer-box:focus{outline:none; border-color:var(--pine);}
+
+  .hint-btn{
+    margin-top:8px; display:inline-flex; align-items:center; gap:6px;
+    background:transparent; border:1px solid var(--line); border-radius:999px;
+    padding:5px 13px; font-family:'Figtree'; font-weight:600; font-size:.8rem;
+    color:var(--ink-soft); cursor:pointer;
+  }
+  .hint-btn:hover{border-color:var(--amber); color:var(--amber);}
+  .hint-text{
+    display:none; margin-top:8px; font-size:.9rem; color:var(--ink-soft);
+    background:var(--amber-light); border-radius:10px; padding:10px 14px;
+  }
+  .hint-text.show{display:block;}
+
+  /* ---------- Reflection section ---------- */
+  .reflect-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px;
+  }
+  .reflect-card{
+    background:var(--card-bg); border:1px solid var(--line); border-radius:16px;
+    padding:20px 22px; box-shadow:var(--shadow);
+  }
+  .reflect-card h3{font-size:1.08rem;}
+  .reflect-card.grow{border-left:4px solid var(--pine);}
+  .reflect-card.shrink{border-left:4px solid var(--rust);}
+  .idea-box{
+    margin-top:20px; background:var(--ink); color:var(--paper);
+    border-radius:16px; padding:22px 24px;
+  }
+  .idea-box h3{color:var(--amber); font-size:1.05rem;}
+  .idea-box ul{padding-left:20px; margin:8px 0 0 0;}
+  .root-final{
+    margin-top:18px; background:var(--sky-light); border-radius:16px;
+    padding:20px 22px; border-left:4px solid var(--sky);
+  }
+
+  @media (max-width:640px){
+    .reflect-grid{grid-template-columns:1fr;}
+    .situation-head, .situation-body{padding-left:20px; padding-right:20px;}
+  }
+
+  /* ---------- Teacher section ---------- */
+  .teacher-gate{
+    background:var(--ink); color:var(--paper);
+    border-radius:var(--radius); padding:36px 30px; text-align:center;
+    box-shadow:var(--shadow);
+  }
+  .teacher-gate h2{color:#fff;}
+  .teacher-gate p{color:#cfc6ac;}
+  .lock-icon{width:44px; height:44px; margin-bottom:10px;}
+  .btn-primary{
+    font-family:'Fredoka'; font-weight:600; font-size:1rem;
+    background:var(--amber); color:var(--ink); border:none;
+    padding:12px 26px; border-radius:999px; cursor:pointer;
+    transition:transform .15s ease;
+  }
+  .btn-primary:hover{transform:translateY(-1px);}
+  .btn-ghost{
+    font-family:'Figtree'; font-weight:600; font-size:.9rem;
+    background:transparent; color:var(--ink-soft); border:1px solid var(--line);
+    padding:9px 18px; border-radius:999px; cursor:pointer; margin-top:20px;
+  }
+
+  #teacherPanel{display:none; margin-top:20px;}
+  .teacher-solutions{
+    background:#2A2418; color:#EFE7D2; border-radius:var(--radius);
+    padding:10px 8px 30px 8px;
+  }
+  .sol-block{
+    margin:0 22px 22px 22px; padding:22px 24px;
+    background:#332C1D; border-radius:14px; border-left:4px solid var(--amber);
+  }
+  .sol-block h3{color:var(--amber); font-size:1.15rem;}
+  .sol-block h4{color:#F3E3C4; font-size:.98rem; margin-top:16px;}
+  .sol-block table{border-collapse:collapse; margin-top:8px;}
+  .sol-block table td, .sol-block table th{border:1px solid #4a4126; padding:6px 12px; text-align:center; font-size:.92rem;}
+  .sol-block table th{background:#3d3521;}
+  .sol-block .math{background:#3d3521; padding:10px 14px; border-radius:8px; margin:8px 0; font-size:.98rem;}
+  .sol-block p{margin:6px 0;}
+
+  /* Modal */
+  .modal-backdrop{
+    display:none; position:fixed; inset:0; background:rgba(20,17,10,0.55);
+    z-index:100; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal-box{
+    background:var(--card-bg); border-radius:18px; padding:28px 26px;
+    max-width:340px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.3);
+    text-align:center;
+  }
+  .modal-box input{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px;
+    font-family:'Figtree'; font-size:1rem; margin:14px 0; text-align:center;
+    letter-spacing:2px;
+  }
+  .modal-box input:focus{outline:none; border-color:var(--pine);}
+  .modal-error{color:var(--rust); font-size:.85rem; min-height:1.2em; margin-bottom:4px;}
+  .modal-actions{display:flex; gap:10px; justify-content:center; margin-top:6px;}
+
+  footer{
+    text-align:center; padding:36px 24px 50px 24px; color:var(--ink-soft); font-size:.88rem;
+  }
+</style>
+</head>
+<body>
+
+<div id="trailbar">
+  <div class="fill-track"><div class="fill" id="fillBar"></div></div>
+  <nav class="waypoints" id="waypointNav">
+    <button class="waypoint-btn" data-target="intro"><span class="dot"></span>Antes de empezar</button>
+    <button class="waypoint-btn" data-target="sit1"><span class="dot"></span>Parada 1</button>
+    <button class="waypoint-btn" data-target="sit2"><span class="dot"></span>Parada 2</button>
+    <button class="waypoint-btn" data-target="sit3"><span class="dot"></span>Parada 3</button>
+    <button class="waypoint-btn" data-target="sit4"><span class="dot"></span>Parada 4</button>
+    <button class="waypoint-btn" data-target="reflect"><span class="dot"></span>Para pensar</button>
+    <button class="waypoint-btn" data-target="teacher"><span class="dot"></span>Docente</button>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <svg class="paw-trail" viewBox="0 0 200 120" fill="none">
+      <g fill="#2F5233">
+        <circle cx="20" cy="90" r="6"/><circle cx="10" cy="78" r="3.2"/><circle cx="22" cy="76" r="3"/><circle cx="30" cy="82" r="3"/>
+        <circle cx="70" cy="60" r="6"/><circle cx="60" cy="48" r="3.2"/><circle cx="72" cy="46" r="3"/><circle cx="80" cy="52" r="3"/>
+        <circle cx="130" cy="35" r="6"/><circle cx="120" cy="23" r="3.2"/><circle cx="132" cy="21" r="3"/><circle cx="140" cy="27" r="3"/>
+        <circle cx="185" cy="10" r="6"/><circle cx="175" cy="-2" r="3.2"/>
+      </g>
+    </svg>
+    <span class="eyebrow-tag">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20 Q4 10 12 10 Q20 10 20 4"/><circle cx="20" cy="4" r="1.6" fill="currentColor"/></svg>
+      Funciones de primer grado
+    </span>
+    <h1>El increíble viaje de Bobbie</h1>
+    <p class="lede">Bobbie fue un perro que, a comienzos del siglo pasado, recorrió una distancia enorme para volver a su hogar tras perderse durante un viaje familiar. Vamos a usar su historia real para trabajar con funciones de primer grado: cómo aumenta lo recorrido, cómo disminuye lo que falta, y qué significa la raíz de una función.</p>
+    <div class="stat-row">
+      <div class="stat-chip"><div class="num">4105 km</div><div class="lbl">distancia total estimada</div></div>
+      <div class="stat-chip"><div class="num">23 km</div><div class="lbl">promedio recorrido por día</div></div>
+      <div class="stat-chip"><div class="num">40.000</div><div class="lbl">visitantes al verlo en el Portland Home Show</div></div>
+    </div>
+  </div>
+</header>
+
+<section id="intro">
+  <div class="wrap">
+    <h2>Antes de empezar</h2>
+    <div class="intro-card">
+      <p>Luego de leer el artículo sobre Bobbie, el perro que recorrió más de 4000 kilómetros para regresar a su hogar, realizaremos algunas actividades utilizando funciones de primer grado. Las funciones nos permitirán representar diferentes situaciones relacionadas con su increíble viaje.</p>
+      <p><strong>Recordemos:</strong> una función permite relacionar dos cantidades que cambian. Por ejemplo, podemos relacionar:</p>
+      <ul>
+        <li>los días transcurridos y los kilómetros recorridos;</li>
+        <li>los días transcurridos y los kilómetros que faltan para llegar;</li>
+        <li>las horas transcurridas y la cantidad de visitantes a un evento.</li>
+      </ul>
+      <div class="root-box">
+        También trabajaremos con la <strong>raíz de una función</strong>. La raíz de una función es el valor de \(x\) para el cual: \[ f(x) = 0 \]
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+
+    <!-- SITUACIÓN 1 -->
+    <article class="situation s1" id="sit1">
+      <div class="situation-head">
+        <span class="eyebrow">Parada 1 · El camino recorrido</span>
+        <h2>¿Cuánto había recorrido Bobbie?</h2>
+        <p class="context">Según el artículo, Bobbie recorrió aproximadamente 4105 kilómetros para regresar a su hogar. Se estima que durante su viaje recorrió un promedio de 23 kilómetros por día.</p>
+      </div>
+      <div class="situation-body">
+
+        <div class="question-block" style="border-top:none; margin-top:0; padding-top:0;">
+          <div class="question-top"><span class="question-num">1</span><span class="question-text">Si suponemos que Bobbie recorrió siempre 23 km por día, completa la siguiente tabla:</span></div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Días transcurridos</th><th>0</th><th>10</th><th>20</th><th>50</th><th>100</th></tr></thead>
+              <tbody><tr><td>Kilómetros recorridos</td>
+                <td><input type="text" aria-label="km a los 0 días"></td>
+                <td><input type="text" aria-label="km a los 10 días"></td>
+                <td><input type="text" aria-label="km a los 20 días"></td>
+                <td><input type="text" aria-label="km a los 50 días"></td>
+                <td><input type="text" aria-label="km a los 100 días"></td>
+              </tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">2</span><span class="question-text">Si \(x\) representa la cantidad de días transcurridos, escribe una función que permita calcular los km recorridos.</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">3</span><span class="question-text">¿Cuántos kilómetros habría recorrido Bobbie luego de 30 días?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+          <button class="hint-btn" onclick="toggleHint(this)">💡 Pista</button>
+          <div class="hint-text">Usa la función que escribiste en la pregunta anterior y reemplaza \(x\) por el número de días.</div>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">4</span><span class="question-text">¿Cuántos días necesitaría aproximadamente para recorrer los 4105 kilómetros?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+          <button class="hint-btn" onclick="toggleHint(this)">💡 Pista</button>
+          <div class="hint-text">Plantea la igualdad entre tu función y 4105, y despeja \(x\).</div>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">5</span><span class="question-text">¿Qué representa el número 23 en la función?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- SITUACIÓN 2 -->
+    <article class="situation s2" id="sit2">
+      <div class="situation-head">
+        <span class="eyebrow">Parada 2 · ¿Cuánto faltaba para llegar?</span>
+        <h2>La distancia que aún le quedaba</h2>
+        <p class="context">Imaginemos nuevamente que Bobbie recorría exactamente 23 km por día. Al comenzar su viaje, le faltaban 4105 km para llegar a su hogar.</p>
+      </div>
+      <div class="situation-body">
+
+        <div class="question-block" style="border-top:none; margin-top:0; padding-top:0;">
+          <div class="question-top"><span class="question-num">1</span><span class="question-text">Completa la siguiente tabla:</span></div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Días transcurridos</th><th>0</th><th>10</th><th>50</th><th>100</th><th>150</th></tr></thead>
+              <tbody><tr><td>Km que faltan</td>
+                <td><input type="text" aria-label="km que faltan a los 0 días"></td>
+                <td><input type="text" aria-label="km que faltan a los 10 días"></td>
+                <td><input type="text" aria-label="km que faltan a los 50 días"></td>
+                <td><input type="text" aria-label="km que faltan a los 100 días"></td>
+                <td><input type="text" aria-label="km que faltan a los 150 días"></td>
+              </tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">2</span><span class="question-text">Escribe una función que represente la cantidad de kilómetros que le faltaban para llegar según los días transcurridos.</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">3</span><span class="question-text">¿Cuántos kilómetros le faltarían luego de 80 días?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">4</span><span class="question-text">¿Cuántos días deberían transcurrir para que la distancia restante sea igual a 1000 km?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+          <button class="hint-btn" onclick="toggleHint(this)">💡 Pista</button>
+          <div class="hint-text">Iguala tu función a 1000 y despeja \(x\).</div>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">5</span><span class="question-text">¿En qué momento la función toma el valor 0?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">6</span><span class="question-text">¿Qué significado tiene la raíz de esta función dentro de la situación?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+          <button class="hint-btn" onclick="toggleHint(this)">💡 Pista</button>
+          <div class="hint-text">Pensá qué pasa en el viaje de Bobbie exactamente cuando esta función vale 0.</div>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- SITUACIÓN 3 -->
+    <article class="situation s3" id="sit3">
+      <div class="situation-head">
+        <span class="eyebrow">Parada 3 · El descanso de Bobbie</span>
+        <h2>Su energía durante el viaje</h2>
+        <p class="context">Al regresar a su hogar, Bobbie descansó durante 3 días completos. Supongamos que, antes de comenzar su viaje, Bobbie tenía una reserva de energía de 100 unidades y que durante cada día de viaje perdía aproximadamente 0,5 unidades de energía.</p>
+      </div>
+      <div class="situation-body">
+
+        <div class="question-block" style="border-top:none; margin-top:0; padding-top:0;">
+          <div class="question-top"><span class="question-num">1</span><span class="question-text">Escribe una función que represente la energía de Bobbie luego de \(x\) días de viaje.</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">2</span><span class="question-text">¿Cuánta energía tendría luego de 50 días?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">3</span><span class="question-text">¿Cuánta energía tendría luego de 100 días?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">4</span><span class="question-text">¿Después de cuántos días su energía llegaría a 0 según este modelo?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+          <button class="hint-btn" onclick="toggleHint(this)">💡 Pista</button>
+          <div class="hint-text">Es la raíz de la función: igualá tu expresión a 0 y despejá \(x\).</div>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">5</span><span class="question-text">¿Qué limitaciones crees que tiene este modelo para representar una situación real?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- SITUACIÓN 4 -->
+    <article class="situation s4" id="sit4">
+      <div class="situation-head">
+        <span class="eyebrow">Parada 4 · Las visitas al Portland Home Show</span>
+        <h2>Cuando Bobbie se volvió famoso</h2>
+        <p class="context">Luego de regresar a su hogar, Bobbie se volvió enormemente famoso. El artículo menciona que aproximadamente 40.000 personas asistieron al Portland Home Show para verlo. Supongamos que durante un evento de 8 horas la cantidad de visitantes aumentó de manera constante y que ingresaron aproximadamente 5000 personas por hora.</p>
+      </div>
+      <div class="situation-body">
+
+        <div class="question-block" style="border-top:none; margin-top:0; padding-top:0;">
+          <div class="question-top"><span class="question-num">1</span><span class="question-text">Si \(x\) representa la cantidad de horas transcurridas, escribe una función que permita calcular cuántas personas entraron en cada hora.</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">2</span><span class="question-text">¿Cuántas personas habrían ingresado luego de 3 horas?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">3</span><span class="question-text">¿Cuántas personas habrían ingresado luego de 6 horas?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">4</span><span class="question-text">¿Después de cuántas horas habrían ingresado 40.000 personas?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">5</span><span class="question-text">¿Cuál es la raíz de la función?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+          <button class="hint-btn" onclick="toggleHint(this)">💡 Pista</button>
+          <div class="hint-text">Buscá el valor de \(x\) para el cual todavía no ingresó nadie al evento.</div>
+        </div>
+
+        <div class="question-block">
+          <div class="question-top"><span class="question-num">6</span><span class="question-text">¿Qué significa la raíz en este contexto?</span></div>
+          <textarea class="answer-box" placeholder="Escribe tu respuesta aquí..."></textarea>
+        </div>
+
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section id="reflect">
+  <div class="wrap">
+    <h2>Para pensar</h2>
+    <p style="color:var(--ink-soft);">A partir de la historia de Bobbie utilizamos funciones para representar diferentes situaciones. Por ejemplo:</p>
+
+    <div class="reflect-grid">
+      <div class="reflect-card grow">
+        <h3>Kilómetros recorridos</h3>
+        <p>La cantidad de kilómetros aumenta con el paso de los días. La función es <strong>creciente</strong>.</p>
+      </div>
+      <div class="reflect-card shrink">
+        <h3>Kilómetros que faltan para llegar</h3>
+        <p>La cantidad de kilómetros restantes disminuye con el paso de los días. La función es <strong>decreciente</strong>.</p>
+      </div>
+    </div>
+
+    <div class="idea-box">
+      <h3>Idea importante</h3>
+      <p>Una misma situación puede representarse utilizando diferentes funciones, dependiendo de qué cantidad queremos estudiar. Por ejemplo, en el viaje de Bobbie podemos analizar:</p>
+      <ul>
+        <li>cuánto ha recorrido;</li>
+        <li>cuánto le falta para llegar.</li>
+      </ul>
+      <p style="margin-bottom:0;">Las dos funciones representan el mismo viaje, pero desde perspectivas diferentes.</p>
+    </div>
+
+    <div class="root-final">
+      <p style="margin-bottom:8px;"><strong>Encontrar la raíz de una función</strong> significa encontrar el valor de \(x\) para el cual \(f(x) = 0\).</p>
+      <p style="margin-bottom:6px;">En una situación concreta, la raíz puede tener diferentes significados. Por ejemplo:</p>
+      <ul style="margin:0; padding-left:20px;">
+        <li>el momento en que Bobbie llega a su hogar;</li>
+        <li>el momento en que una cantidad llega a cero;</li>
+        <li>el inicio de un evento.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="teacher">
+  <div class="wrap">
+    <div class="teacher-gate">
+      <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="#E2A83D" stroke-width="1.6"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <h2>Sección para el docente</h2>
+      <p>Esta sección contiene las soluciones de las cuatro paradas. Está pensada solo para el profesor o la profesora del curso.</p>
+      <button class="btn-primary" id="openModalBtn">Ver soluciones del docente</button>
+
+      <div id="teacherPanel">
+        <div class="teacher-solutions">
+
+          <div class="sol-block">
+            <h3>Soluciones — Situación 1</h3>
+            <h4>Pregunta 1</h4>
+            <table><thead><tr><th>Días</th><th>0</th><th>10</th><th>20</th><th>50</th><th>100</th></tr></thead>
+              <tbody><tr><td>Km recorridos</td><td>0</td><td>230</td><td>460</td><td>1150</td><td>2300</td></tr></tbody></table>
+            <h4>Pregunta 2</h4>
+            <div class="math">\( f(x) = 23x \)</div>
+            <h4>Pregunta 3</h4>
+            <div class="math">\( f(30) = 23 \times 30 = 690 \)</div>
+            <p>Respuesta: 690 kilómetros.</p>
+            <h4>Pregunta 4</h4>
+            <div class="math">\( 23x = 4105 \Rightarrow x = 4105/23 \approx 178{,}48 \)</div>
+            <p>Respuesta: aproximadamente 179 días.</p>
+            <h4>Pregunta 5</h4>
+            <p>El número 23 representa la cantidad promedio de kilómetros recorridos por día.</p>
+          </div>
+
+          <div class="sol-block">
+            <h3>Soluciones — Situación 2</h3>
+            <h4>Pregunta 1</h4>
+            <table><thead><tr><th>Días</th><th>0</th><th>10</th><th>50</th><th>100</th><th>150</th></tr></thead>
+              <tbody><tr><td>Km que faltan</td><td>4105</td><td>3875</td><td>2955</td><td>1805</td><td>655</td></tr></tbody></table>
+            <h4>Pregunta 2</h4>
+            <div class="math">\( f(x) = 4105 - 23x \)</div>
+            <h4>Pregunta 3</h4>
+            <div class="math">\( f(80) = 4105 - 23(80) = 2265 \)</div>
+            <p>Respuesta: luego de 80 días le faltarían 2265 kilómetros.</p>
+            <h4>Pregunta 4</h4>
+            <div class="math">\( 4105 - 23x = 1000 \Rightarrow 23x = 3105 \Rightarrow x = 135 \)</div>
+            <p>Respuesta: deberían transcurrir 135 días.</p>
+            <h4>Pregunta 5</h4>
+            <div class="math">\( 4105 - 23x = 0 \Rightarrow x \approx 178{,}48 \)</div>
+            <p>Respuesta: aproximadamente luego de 179 días.</p>
+            <h4>Pregunta 6</h4>
+            <p>La raíz representa el momento en que Bobbie llega a su hogar, ya que la distancia que le falta por recorrer es igual a cero.</p>
+          </div>
+
+          <div class="sol-block">
+            <h3>Soluciones — Situación 3</h3>
+            <h4>Pregunta 1</h4>
+            <div class="math">\( f(x) = 100 - 0{,}5x \)</div>
+            <h4>Pregunta 2</h4>
+            <div class="math">\( f(50) = 100 - 0{,}5(50) = 75 \)</div>
+            <p>Respuesta: 75 unidades de energía.</p>
+            <h4>Pregunta 3</h4>
+            <div class="math">\( f(100) = 100 - 0{,}5(100) = 50 \)</div>
+            <p>Respuesta: 50 unidades de energía.</p>
+            <h4>Pregunta 4</h4>
+            <div class="math">\( 100 - 0{,}5x = 0 \Rightarrow x = 200 \)</div>
+            <p>Respuesta: después de 200 días.</p>
+            <h4>Pregunta 5</h4>
+            <p>El modelo tiene limitaciones porque la energía real de un ser vivo no disminuye necesariamente de manera constante. Bobbie probablemente descansaba, se alimentaba y recuperaba energía durante su viaje. Por lo tanto, la función es una simplificación matemática de una situación real.</p>
+          </div>
+
+          <div class="sol-block">
+            <h3>Soluciones — Situación 4</h3>
+            <h4>Pregunta 1</h4>
+            <div class="math">\( f(x) = 5000x \)</div>
+            <h4>Pregunta 2</h4>
+            <div class="math">\( f(3) = 5000 \times 3 = 15000 \)</div>
+            <p>Respuesta: 15.000 personas.</p>
+            <h4>Pregunta 3</h4>
+            <div class="math">\( f(6) = 5000 \times 6 = 30000 \)</div>
+            <p>Respuesta: 30.000 personas.</p>
+            <h4>Pregunta 4</h4>
+            <div class="math">\( 5000x = 40000 \Rightarrow x = 8 \)</div>
+            <p>Respuesta: después de 8 horas.</p>
+            <h4>Pregunta 5</h4>
+            <div class="math">\( 5000x = 0 \Rightarrow x = 0 \)</div>
+            <h4>Pregunta 6</h4>
+            <p>La raíz representa el inicio del evento, cuando todavía no había ingresado ningún visitante.</p>
+          </div>
+
+        </div>
+        <button class="btn-ghost" id="hideSolutionsBtn">Ocultar soluciones</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Profesor: Lucas Barboza · Matemática, 8.º grado
+</footer>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-box">
+    <h3 style="margin-bottom:6px;">Acceso docente</h3>
+    <p style="color:var(--ink-soft); font-size:.9rem; margin-bottom:0;">Ingresá la contraseña para ver las soluciones.</p>
+    <input type="password" id="pwdInput" placeholder="Contraseña" inputmode="numeric">
+    <div class="modal-error" id="pwdError"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelModalBtn" style="margin-top:0;">Cancelar</button>
+      <button class="btn-primary" id="confirmPwdBtn">Ingresar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---- Progress bar + waypoint nav ----
+  const fillBar = document.getElementById('fillBar');
+  const sections = ['intro','sit1','sit2','sit3','sit4','reflect','teacher'].map(id => document.getElementById(id));
+  const waypointBtns = document.querySelectorAll('.waypoint-btn');
+
+  function updateProgress(){
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    fillBar.style.width = pct + '%';
+  }
+
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        waypointBtns.forEach(b=>b.classList.remove('active'));
+        const btn = document.querySelector('.waypoint-btn[data-target="'+entry.target.id+'"]');
+        if(btn) btn.classList.add('active');
+      }
+    });
+  }, {rootMargin:'-45% 0px -50% 0px'});
+  sections.forEach(s => s && observer.observe(s));
+
+  waypointBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const target = document.getElementById(btn.dataset.target);
+      if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+
+  window.addEventListener('scroll', updateProgress);
+  updateProgress();
+
+  // ---- Hints ----
+  function toggleHint(btn){
+    const hint = btn.nextElementSibling;
+    hint.classList.toggle('show');
+    btn.textContent = hint.classList.contains('show') ? '💡 Ocultar pista' : '💡 Pista';
+  }
+
+  // ---- Teacher password gate ----
+  const openModalBtn = document.getElementById('openModalBtn');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const cancelModalBtn = document.getElementById('cancelModalBtn');
+  const confirmPwdBtn = document.getElementById('confirmPwdBtn');
+  const pwdInput = document.getElementById('pwdInput');
+  const pwdError = document.getElementById('pwdError');
+  const teacherPanel = document.getElementById('teacherPanel');
+  const hideSolutionsBtn = document.getElementById('hideSolutionsBtn');
+  const CORRECT_PWD = "12344321";
+
+  openModalBtn.addEventListener('click', ()=>{
+    modalBackdrop.classList.add('show');
+    pwdInput.value = '';
+    pwdError.textContent = '';
+    setTimeout(()=>pwdInput.focus(), 50);
+  });
+  cancelModalBtn.addEventListener('click', ()=> modalBackdrop.classList.remove('show'));
+  modalBackdrop.addEventListener('click', (e)=>{ if(e.target === modalBackdrop) modalBackdrop.classList.remove('show'); });
+
+  function checkPwd(){
+    if(pwdInput.value === CORRECT_PWD){
+      modalBackdrop.classList.remove('show');
+      teacherPanel.style.display = 'block';
+      openModalBtn.style.display = 'none';
+    } else {
+      pwdError.textContent = 'Contraseña incorrecta. Intentá de nuevo.';
+    }
+  }
+  confirmPwdBtn.addEventListener('click', checkPwd);
+  pwdInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') checkPwd(); });
+
+  hideSolutionsBtn.addEventListener('click', ()=>{
+    teacherPanel.style.display = 'none';
+    openModalBtn.style.display = 'inline-block';
+  });
+</script>
+
+</body>
+</html>
