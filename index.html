@@ -314,6 +314,48 @@ window.MathJax = {
   footer{
     text-align:center; padding:36px 24px 50px 24px; color:var(--ink-soft); font-size:.88rem;
   }
+
+  /* ---------- Botón guardar como PDF ---------- */
+  #pdfBtn{
+    position:fixed; bottom:22px; right:22px; z-index:70;
+    display:flex; align-items:center; gap:8px;
+    background:var(--pine); color:#fff; border:none;
+    font-family:'Fredoka'; font-weight:600; font-size:.92rem;
+    padding:13px 20px; border-radius:999px; cursor:pointer;
+    box-shadow:0 10px 24px rgba(47,82,51,0.35);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  #pdfBtn:hover{transform:translateY(-2px); box-shadow:0 14px 30px rgba(47,82,51,0.4);}
+  #pdfBtn svg{width:18px; height:18px; flex:0 0 auto;}
+  @media (max-width:640px){
+    #pdfBtn{ right:16px; bottom:16px; padding:12px 16px; font-size:.85rem; }
+    #pdfBtn span{ display:none; }
+  }
+
+  /* ---------- Impresión / PDF: mismo diseño, solo lo respondido ---------- */
+  @media print{
+    @page{ margin:14mm 12mm; }
+
+    /* elementos de navegación e interacción que no aportan al PDF */
+    #trailbar, #pdfBtn, .waypoints, .hint-btn, .modal-backdrop{ display:none !important; }
+
+    /* secciones explicativas que no son respuestas del estudiante */
+    header.hero, #intro, #reflect, #teacher{ display:none !important; }
+
+    body{ background:#fff; }
+    section.alt{ background:#fff; border:none; }
+
+    .situation{ box-shadow:none; break-inside:avoid; margin:0 0 22px 0; }
+    .situation-head{ padding:14px 4px 14px 4px; }
+    .situation-body{ padding:14px 4px 4px 4px; }
+
+    .answer-box{ overflow:visible; height:auto !important; }
+
+    /* oculta preguntas, tablas o paradas enteras sin nada escrito */
+    .hide-empty-print{ display:none !important; }
+
+    footer{ padding:20px 0; }
+  }
 </style>
 </head>
 <body>
@@ -704,6 +746,11 @@ window.MathJax = {
   Profesor: Lucas Barboza · Matemática, 8.º grado
 </footer>
 
+<button id="pdfBtn" onclick="printAnswers()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h9l3 3v4"/><path d="M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+  <span>Guardar PDF con respuestas</span>
+</button>
+
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal-box">
     <h3 style="margin-bottom:6px;">Acceso docente</h3>
@@ -794,6 +841,54 @@ window.MathJax = {
     teacherPanel.style.display = 'none';
     openModalBtn.style.display = 'inline-block';
   });
+
+  // ---- PDF: mismo diseño, pero solo lo que el estudiante ya respondió ----
+  function prepareForPrint(){
+    document.querySelectorAll('.situation').forEach(sit=>{
+      let sitHasAnswer = false;
+
+      // preguntas con caja de respuesta
+      sit.querySelectorAll('.question-block').forEach(block=>{
+        const ta = block.querySelector('.answer-box');
+        if(ta){
+          const filled = ta.value.trim() !== '';
+          block.classList.toggle('hide-empty-print', !filled);
+          if(filled){
+            sitHasAnswer = true;
+            // agranda la caja para que se vea el texto completo, sin cortes
+            ta.dataset.prevHeight = ta.style.height || '';
+            ta.style.height = 'auto';
+            ta.style.height = ta.scrollHeight + 'px';
+          }
+        }
+      });
+
+      // tabla para completar (si la situación tiene una)
+      const tableWrap = sit.querySelector('.table-scroll');
+      if(tableWrap){
+        const inputs = tableWrap.querySelectorAll('input');
+        let tableFilled = false;
+        inputs.forEach(inp=>{ if(inp.value.trim() !== '') tableFilled = true; });
+        tableWrap.classList.toggle('hide-empty-print', !tableFilled);
+        if(tableFilled) sitHasAnswer = true;
+      }
+
+      // si la parada entera quedó sin respuestas, no ocupa lugar en el PDF
+      sit.classList.toggle('hide-empty-print', !sitHasAnswer);
+    });
+  }
+
+  function restoreAfterPrint(){
+    document.querySelectorAll('.answer-box').forEach(ta=>{
+      ta.style.height = ta.dataset.prevHeight || '';
+    });
+  }
+  window.addEventListener('afterprint', restoreAfterPrint);
+
+  function printAnswers(){
+    prepareForPrint();
+    window.print();
+  }
 </script>
 
 </body>
