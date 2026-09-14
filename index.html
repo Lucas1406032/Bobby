@@ -314,6 +314,16 @@ window.MathJax = {
   footer{
     text-align:center; padding:36px 24px 50px 24px; color:var(--ink-soft); font-size:.88rem;
   }
+  .autosave-note{
+    margin-top:10px; font-size:.8rem; color:var(--ink-soft); opacity:.85;
+  }
+  .autosave-note button{
+    margin-left:6px; border:none; background:none; color:var(--sky);
+    font-family:'Figtree'; font-size:.8rem; font-weight:600; text-decoration:underline;
+    cursor:pointer; padding:0;
+  }
+  .autosave-note button:hover{ color:var(--rust); }
+  @media print{ .autosave-note{ display:none !important; } }
 
   /* ---------- Botón guardar como PDF ---------- */
   #pdfBtn{
@@ -744,6 +754,10 @@ window.MathJax = {
 
 <footer>
   Profesor: Lucas Barboza · Matemática, 8.º grado
+  <div class="autosave-note">
+    Tus respuestas se guardan automáticamente en este dispositivo.
+    <button id="clearSavedBtn" type="button">Borrar mis respuestas guardadas</button>
+  </div>
 </footer>
 
 <button id="pdfBtn" onclick="printAnswers()">
@@ -840,6 +854,45 @@ window.MathJax = {
   hideSolutionsBtn.addEventListener('click', ()=>{
     teacherPanel.style.display = 'none';
     openModalBtn.style.display = 'inline-block';
+  });
+
+  // ---- Guardar y recuperar el progreso del estudiante en este dispositivo ----
+  const STORAGE_KEY = 'bobbie-funciones-respuestas-v1';
+
+  function getSavableFields(){
+    return document.querySelectorAll('.answer-box, table.data-table input');
+  }
+
+  function loadSavedProgress(){
+    let saved = null;
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) saved = JSON.parse(raw);
+    }catch(e){ saved = null; }
+    if(!saved) return;
+    getSavableFields().forEach((field, i)=>{
+      if(saved[i] !== undefined) field.value = saved[i];
+    });
+  }
+
+  function saveProgress(){
+    try{
+      const values = Array.from(getSavableFields()).map(f => f.value);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    }catch(e){ /* almacenamiento no disponible: se sigue usando la página sin guardado */ }
+  }
+
+  loadSavedProgress();
+  getSavableFields().forEach(field=>{
+    field.addEventListener('input', saveProgress);
+  });
+
+  const clearSavedBtn = document.getElementById('clearSavedBtn');
+  clearSavedBtn.addEventListener('click', ()=>{
+    if(confirm('¿Borrar todas las respuestas guardadas en este dispositivo? Esta acción no se puede deshacer.')){
+      localStorage.removeItem(STORAGE_KEY);
+      getSavableFields().forEach(field=>{ field.value = ''; });
+    }
   });
 
   // ---- PDF: mismo diseño, pero solo lo que el estudiante ya respondió ----
