@@ -931,6 +931,14 @@ window.MathJax = {
       showToast('No se puede pegar texto aquí — escribí tu respuesta con tus palabras.');
     });
     field.addEventListener('contextmenu', (e)=> e.preventDefault());
+
+    // En muchos navegadores de celular, pegar no dispara "paste" sino "beforeinput"
+    field.addEventListener('beforeinput', (e)=>{
+      if(e.inputType === 'insertFromPaste' || e.inputType === 'insertFromPasteAsQuotation' || e.inputType === 'insertFromDrop'){
+        e.preventDefault();
+        showToast('No se puede pegar texto aquí — escribí tu respuesta con tus palabras.');
+      }
+    });
   });
 
   // ---- PDF: mismo diseño, pero solo lo que el estudiante ya respondió ----
