@@ -325,6 +325,20 @@ window.MathJax = {
   .autosave-note button:hover{ color:var(--rust); }
   @media print{ .autosave-note{ display:none !important; } }
 
+  .toast{
+    position:fixed; bottom:90px; left:50%;
+    transform:translateX(-50%) translateY(14px);
+    background:var(--ink); color:var(--paper);
+    padding:11px 20px; border-radius:999px;
+    font-family:'Figtree'; font-weight:600; font-size:.85rem;
+    box-shadow:0 10px 24px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; z-index:80;
+    transition:opacity .25s ease, transform .25s ease;
+    max-width:88vw; text-align:center;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  @media print{ .toast{ display:none !important; } }
+
   /* ---------- Botón guardar como PDF ---------- */
   #pdfBtn{
     position:fixed; bottom:22px; right:22px; z-index:70;
@@ -778,6 +792,8 @@ window.MathJax = {
   </div>
 </div>
 
+<div id="pasteToast" class="toast"></div>
+
 <script>
   // ---- Progress bar + waypoint nav ----
   const fillBar = document.getElementById('fillBar');
@@ -893,6 +909,28 @@ window.MathJax = {
       localStorage.removeItem(STORAGE_KEY);
       getSavableFields().forEach(field=>{ field.value = ''; });
     }
+  });
+
+  // ---- Bloquear pegado de texto en las respuestas ----
+  let toastTimer;
+  function showToast(msg){
+    const toast = document.getElementById('pasteToast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> toast.classList.remove('show'), 2400);
+  }
+
+  getSavableFields().forEach(field=>{
+    field.addEventListener('paste', (e)=>{
+      e.preventDefault();
+      showToast('No se puede pegar texto aquí — escribí tu respuesta con tus palabras.');
+    });
+    field.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      showToast('No se puede pegar texto aquí — escribí tu respuesta con tus palabras.');
+    });
+    field.addEventListener('contextmenu', (e)=> e.preventDefault());
   });
 
   // ---- PDF: mismo diseño, pero solo lo que el estudiante ya respondió ----
